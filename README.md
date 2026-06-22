@@ -10,6 +10,24 @@ demos.
 
 Everything runs **locally**, with no cloud service.
 
+## What it produces
+
+A streaming transaction feed with salaries, rent, subscriptions, loans, daily
+spending, ATM withdrawals and life events — naturalized per country. A few real
+rows from a US run (`samples/`):
+
+| date | label | amount | currency | category | subcategory |
+|---|---|---:|---|---|---|
+| 2024-01-26 | `DIRECT DEP EMPLOYER LLC` | 5894.46 | USD | income | salary |
+| 2024-01-04 | `ACH RENT` | -1701.80 | USD | housing | rent |
+| 2024-01-05 | `CHEVRON` | -107.68 | USD | transport | fuel |
+| 2024-02-07 | `DISNEY+` | -17.59 | USD | subscriptions | streaming_video |
+| 2024-01-07 | `ATM WITHDRAWAL CHICAGO` | -60.00 | USD | finance | atm_withdrawal |
+
+The same run with `--country uk` yields `BACS SALARY` / `DD RENT` / GBP, and
+`--country fr` yields `VIR SALAIRE` / `PRELV LOYER` / EUR. See
+[`samples/`](samples/) for a ready-to-view slice.
+
 ## Country / locale (`--country`)
 
 The generator produces **naturalized** data per country: names, banks, account
