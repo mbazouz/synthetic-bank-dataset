@@ -1,0 +1,13 @@
+customer_id,first_name,last_name,sex,age,birth_date,city,postal_code,country,locale_code,family_situation,num_children,profession,customer_segment,profile,bank_preset,monthly_income,estimated_wealth,financial_score,risk_appetite,customer_since
+C0000001,Courtney,Massey,F,42,1983-12-22,Chicago,60623,United States,us,married,1,HR manager,STANDARD,family,regional,5673.94,55698.36,715,moderate,2021-09-04
+C0000002,Diana,Chen,F,44,1982-04-23,New York,10015,United States,us,married,0,product manager,PREMIUM,manager,regional,8068.43,74159.29,803,dynamic,2018-11-09
+C0000003,Regina,Pratt,F,26,1999-10-09,Chicago,60645,United States,us,divorced,0,data analyst,STANDARD,young_professional,retail_mass,3439.14,5000.67,688,moderate,2018-04-01
+C0000004,Erin,Wells,F,40,1985-11-01,Los Angeles,90078,United States,us,married,1,trader,PRIVATE,investor,private,4684.95,257570.63,825,aggressive,2004-05-08
+C0000005,Jeffrey,Ramos,M,39,1986-11-04,Los Angeles,90028,United States,us,single,1,coach,PRO,freelancer,young_neobank,2972.71,21084.52,706,moderate,2004-11-25
+C0000006,Mark,Yu,M,32,1993-12-18,New York,10039,United States,us,single,0,software engineer,STANDARD,young_professional,retail_mass,3519.04,10428.31,700,moderate,2026-06-11
+C0000007,Justin,Huynh,M,27,1999-02-21,Charlotte,28254,United States,us,cohabiting,2,sales associate,STANDARD,young_professional,young_neobank,3588.87,3458.04,691,moderate,2019-04-03
+C0000008,Tyler,Reed,M,63,1962-10-24,New Orleans,70181,United States,us,married,2,retired teacher,SENIOR,retiree,regional,1808.99,17316.55,747,conservative,2014-07-24
+C0000009,Patrick,White,M,36,1990-06-19,Miami,33123,United States,us,married,1,asset manager,PRIVATE,investor,private,4971.14,192739.06,835,aggressive,2015-12-19
+C0000010,Debbie,Williams,F,44,1981-08-23,New York,10036,United States,us,divorced,1,technician,STANDARD,family,regional,8065.11,27216.45,728,moderate,1999-07-23
+C0000011,Karla,Nguyen,F,49,1977-05-30,New York,10073,United States,us,married,0,senior engineer,PREMIUM,manager,retail_mass,8355.37,107960.02,778,dynamic,2017-11-28
+C0000012,Bonnie,Garcia,F,47,1978-09-17,Kansas City,64151,United States,us,married,2,teacher,STANDARD,family,retail_mass,4459.22,21122.74,706,moderate,1998-02-16
