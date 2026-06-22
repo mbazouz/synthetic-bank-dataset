@@ -1,5 +1,9 @@
 # Synthetic Banking Dataset Generator
 
+[![CI](https://github.com/mbazouz/synthetic-bank-dataset/actions/workflows/ci.yml/badge.svg)](https://github.com/mbazouz/synthetic-bank-dataset/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
+
 Generates a 100% synthetic — yet realistic — retail banking dataset for AI
 training, personalized banking advice, scoring, behavioral detection and sales
 demos.
