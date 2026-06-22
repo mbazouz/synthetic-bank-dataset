@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+output_smoke/
+.venv/
+venv/
+dist/
+build/
+output/
+output-*/
+delivery/

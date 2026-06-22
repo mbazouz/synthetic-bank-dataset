@@ -1,0 +1,95 @@
+{
+  "version": "1.0",
+  "country": "FR",
+  "currency": "EUR",
+  "categories": {
+    "revenus": {
+      "label": "Revenus",
+      "subcategories": ["salaire", "primes", "freelance", "loyer_percu", "remboursement", "aides_caf", "pension_retraite", "allocations_chomage", "interets", "dividendes"]
+    },
+    "alimentation": {
+      "label": "Alimentation",
+      "subcategories": ["supermarche", "boulangerie", "boucherie", "primeur", "epicerie_fine", "marche"]
+    },
+    "restauration": {
+      "label": "Restauration",
+      "subcategories": ["restaurant", "fast_food", "livraison", "cafe_bar", "cantine"]
+    },
+    "transport": {
+      "label": "Transport",
+      "subcategories": ["carburant", "sncf", "metro_bus", "uber_vtc", "parking", "peage", "location_voiture", "velo"]
+    },
+    "logement": {
+      "label": "Logement",
+      "subcategories": ["loyer", "charges_copro", "credit_immobilier", "assurance_habitation", "ameublement", "bricolage", "menage"]
+    },
+    "energie": {
+      "label": "Énergie",
+      "subcategories": ["electricite", "gaz", "eau", "fioul"]
+    },
+    "telecom": {
+      "label": "Télécom",
+      "subcategories": ["internet_fixe", "mobile", "tv"]
+    },
+    "abonnements": {
+      "label": "Abonnements & Streaming",
+      "subcategories": ["streaming_video", "streaming_musique", "cloud", "presse", "salle_sport", "applications", "gaming"]
+    },
+    "shopping": {
+      "label": "Shopping",
+      "subcategories": ["vetements", "chaussures", "electronique", "maison_deco", "ecommerce", "librairie", "jouets"]
+    },
+    "sante": {
+      "label": "Santé",
+      "subcategories": ["pharmacie", "medecin", "specialiste", "mutuelle", "optique", "dentiste", "hopital"]
+    },
+    "education": {
+      "label": "Éducation",
+      "subcategories": ["frais_scolaires", "creche", "fournitures", "etudes_sup", "formation", "soutien"]
+    },
+    "voyages": {
+      "label": "Voyages & Loisirs",
+      "subcategories": ["hotel", "airbnb", "billet_avion", "billet_train", "agence_voyage", "loisirs_culture", "musee_cinema", "sport_loisir"]
+    },
+    "finance": {
+      "label": "Finance & Banque",
+      "subcategories": ["virement_interne", "virement_externe", "retrait_dab", "frais_bancaires", "agios", "epargne", "investissement_pea", "assurance_vie", "credit_conso", "credit_auto"]
+    },
+    "famille": {
+      "label": "Famille",
+      "subcategories": ["enfants", "garde_enfant", "vetements_enfant", "cadeaux", "evenement_familial"]
+    },
+    "professionnel": {
+      "label": "Professionnel",
+      "subcategories": ["urssaf", "tva", "fournisseurs", "logiciels_pro", "facturation_client", "deplacement_pro", "materiel_pro"]
+    },
+    "divers": {
+      "label": "Divers",
+      "subcategories": ["dons", "amendes", "impots", "non_classe"]
+    }
+  },
+  "transaction_types": [
+    "card_payment",
+    "card_payment_contactless",
+    "card_payment_online",
+    "atm_withdrawal",
+    "sepa_credit_transfer",
+    "sepa_direct_debit",
+    "instant_transfer",
+    "internal_transfer",
+    "check",
+    "fee",
+    "interest"
+  ],
+  "payment_channels": [
+    "in_store",
+    "contactless",
+    "online",
+    "atm",
+    "transfer",
+    "direct_debit",
+    "check",
+    "mobile_app",
+    "branch"
+  ]
+}
