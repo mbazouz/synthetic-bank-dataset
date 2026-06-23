@@ -31,7 +31,15 @@ from .accounts import Account
 from .config import BANK_PRESETS
 from .customers import Customer
 from .loans import Loan
-from .locales import AccountRole, BankPresetSpec, Locale, get_locale
+from .locales import (
+    FOREIGN_FEE_PCT,
+    AccountRole,
+    BankPresetSpec,
+    Locale,
+    all_locale_codes,
+    fx_rate,
+    get_locale,
+)
 from .merchants import build_merchant_pools, label_for
 from .profiles import PROFILES, ProfileSpec
 from .subscriptions import Subscription
@@ -171,6 +179,11 @@ def _make_tx(
     currency: str = "EUR",
     country: str = "FR",
     balance_after: float = 0.0,
+    is_foreign: bool = False,
+    original_amount: float | None = None,
+    original_currency: str | None = None,
+    fx_rate: float = 1.0,
+    foreign_fee: float = 0.0,
 ) -> dict:
     return {
         "transaction_id": uuid.uuid4().hex,
@@ -195,6 +208,11 @@ def _make_tx(
         "is_transfer": is_transfer,
         "is_cash_withdrawal": is_cash_withdrawal,
         "balance_after_transaction": round(balance_after, 2),
+        "is_foreign": is_foreign,
+        "original_amount": round(original_amount if original_amount is not None else amount, 2),
+        "original_currency": original_currency or currency,
+        "fx_rate": round(fx_rate, 6),
+        "foreign_fee": round(foreign_fee, 2),
     }
 
 
@@ -254,6 +272,7 @@ def _state_for_customer(
     phases: list,
     rng_np: np.random.Generator,
     locale: Locale,
+    foreign_share: float = 0.0,
 ) -> dict:
     main = next((a for a in accounts if a.role == AccountRole.CURRENT), accounts[0])
     savings = [a for a in accounts if a.role in AccountRole.SWEEP_TARGETS]
@@ -274,6 +293,10 @@ def _state_for_customer(
         "country": locale.country_code,
         "labels": locale.labels,
         "pools": _pools_for(locale),
+        "foreign_share": foreign_share,
+        # candidate destination locales for cross-border spend (other countries)
+        "foreign_locales": [get_locale(c) for c in all_locale_codes() if c != locale.code]
+        if foreign_share > 0 else [],
         "inflation_table": locale.inflation_by_year,
         "inflation_baseline": locale.inflation_baseline_year,
         "income_scale": locale.income_scale,
@@ -523,20 +546,49 @@ def _emit_daily_spend(
 
     for _ in range(n):
         cat = rng.choices(cats, weights=wts, k=1)[0]
-        m = _pick_merchant(pools, cat, rng)
-        amount = _amount_from_merchant(m, rng_np) * income_factor
-        amount *= _inflation_factor(d, state["inflation_baseline"], state["inflation_table"])
-        tx_type, channel = _channel_to_tx_type(m["channel"], rng)
-        when = _random_time(d, cat, rng)
-        new_bal, over, posted = _safe_post(main, amount)
-        if not posted:
-            continue  # Card payment declined at the POS / online checkout.
-        city = customer.ville if channel != "online" else ""
-        txs.append(_make_tx(
-            main, when, amount, m["name"], m["mcc"], cat, m["subcategory"],
-            tx_type, channel, label_for(m["name"], rng, state["locale"].label_noise), city=city,
-            currency=cur, country=ctry, balance_after=new_bal,
-        ))
+        # Decide whether this card payment happens abroad.
+        floc = None
+        if state["foreign_share"] > 0 and state["foreign_locales"] and rng.random() < state["foreign_share"]:
+            cand = rng.choice(state["foreign_locales"])
+            if cat in _pools_for(cand):
+                floc = cand
+
+        if floc is not None:
+            # Cross-border: merchant + amount are in the destination's currency;
+            # the account is debited in its OWN currency (mid rate + FX markup).
+            m = _pick_merchant(_pools_for(floc), cat, rng)
+            orig = _amount_from_merchant(m, rng_np) * income_factor  # foreign-currency debit
+            fxr = fx_rate(cur, floc.currency)
+            billed_excl_fee = orig * fxr
+            fgn_fee = round(abs(billed_excl_fee) * FOREIGN_FEE_PCT, 2)
+            amount = round(billed_excl_fee - fgn_fee, 2)  # billing amount incl. markup
+            tx_type, channel = _channel_to_tx_type(m["channel"], rng)
+            when = _random_time(d, cat, rng)
+            new_bal, over, posted = _safe_post(main, amount)
+            if not posted:
+                continue
+            txs.append(_make_tx(
+                main, when, amount, m["name"], m["mcc"], cat, m["subcategory"],
+                tx_type, channel, label_for(m["name"], rng, floc.label_noise), city="",
+                currency=cur, country=floc.country_code, balance_after=new_bal,
+                is_foreign=True, original_amount=orig, original_currency=floc.currency,
+                fx_rate=fxr, foreign_fee=fgn_fee,
+            ))
+        else:
+            m = _pick_merchant(pools, cat, rng)
+            amount = _amount_from_merchant(m, rng_np) * income_factor
+            amount *= _inflation_factor(d, state["inflation_baseline"], state["inflation_table"])
+            tx_type, channel = _channel_to_tx_type(m["channel"], rng)
+            when = _random_time(d, cat, rng)
+            new_bal, over, posted = _safe_post(main, amount)
+            if not posted:
+                continue  # Card payment declined at the POS / online checkout.
+            city = customer.ville if channel != "online" else ""
+            txs.append(_make_tx(
+                main, when, amount, m["name"], m["mcc"], cat, m["subcategory"],
+                tx_type, channel, label_for(m["name"], rng, state["locale"].label_noise), city=city,
+                currency=cur, country=ctry, balance_after=new_bal,
+            ))
         # If overdraft kicks in, charge agios on roughly 1-in-4 events to avoid spam.
         if over and rng.random() < 0.25:
             fee = round(rng.uniform(8, 25), 2)
@@ -632,6 +684,7 @@ def generate_transactions_for_customer(
     end: date,
     seed: int,
     trajectory: Trajectory | None = None,
+    foreign_share: float = 0.0,
 ) -> Iterator[dict]:
     """Yield transactions for a single customer over [start, end]."""
     # A customer can only generate transactions from the date they joined the
@@ -650,7 +703,8 @@ def generate_transactions_for_customer(
             customer, effective_start, end, preset,
             random.Random(seed), np.random.default_rng(seed),
         )
-    state = _state_for_customer(customer, accounts, subs, loans, trajectory.phases, rng_np, locale)
+    state = _state_for_customer(customer, accounts, subs, loans, trajectory.phases, rng_np,
+                                locale, foreign_share)
     salary_day = state["salary_day"]
     rent_day = state["rent_day"]
     # Walk day by day
@@ -693,6 +747,7 @@ def generate_all_transactions(
     end: date,
     seed: int,
     trajectories_by_customer: dict[str, Trajectory] | None = None,
+    foreign_share: float = 0.0,
 ) -> Iterable[dict]:
     """Stream all transactions, customer by customer. Caller batches/writes."""
     trajectories_by_customer = trajectories_by_customer or {}
@@ -706,5 +761,5 @@ def generate_all_transactions(
         per_seed = (seed * 1_000_003 + i) & 0xFFFFFFFF
         yield from generate_transactions_for_customer(
             c, accs, subs, loans, start, end, per_seed,
-            trajectories_by_customer.get(c.customer_id),
+            trajectories_by_customer.get(c.customer_id), foreign_share,
         )

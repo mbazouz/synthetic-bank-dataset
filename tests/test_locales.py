@@ -142,6 +142,41 @@ def test_raw_headers_are_english(tmp_path: Path, country: str) -> None:
         assert not leak, f"French column names in {fname}: {leak}"
 
 
+def test_no_foreign_by_default(tmp_path: Path) -> None:
+    out = _generate(tmp_path, "us")
+    rows = _rows(out / "transactions.csv")
+    assert all(r["is_foreign"] == "False" for r in rows), "foreign tx leaked with default share=0"
+    # the foreign columns still exist and are identity for domestic rows
+    sample = rows[0]
+    assert sample["original_currency"] == sample["currency"]
+    assert sample["fx_rate"] == "1.0" and sample["foreign_fee"] == "0.0"
+
+
+def test_foreign_transactions(tmp_path: Path) -> None:
+    out = out = tmp_path / "fgn"
+    rc = generate_main([
+        "--country", "us", "--customers", "30", "--foreign-share", "0.12",
+        "--start", "2024-01-01", "--end", "2024-06-30",
+        "--output", str(out), "--seed", "7",
+    ])
+    assert rc == 0
+    rows = _rows(out / "transactions.csv")
+    fgn = [r for r in rows if r["is_foreign"] == "True"]
+    assert fgn, "expected some foreign transactions"
+    for r in fgn:
+        # billing currency must stay the account's home currency (USD here)
+        assert r["currency"] == "USD"
+        # the original leg is in a different currency, with a non-trivial fx rate
+        assert r["original_currency"] != "USD"
+        assert float(r["fx_rate"]) != 1.0
+        assert float(r["foreign_fee"]) >= 0
+        # billed amount = original * fx, plus the markup folded in (all debits)
+        expected = round(float(r["original_amount"]) * float(r["fx_rate"]) - float(r["foreign_fee"]), 2)
+        assert abs(float(r["amount"]) - expected) < 0.02
+    # fees are generally charged (not zero across the board)
+    assert sum(float(r["foreign_fee"]) for r in fgn) > 0
+
+
 def test_determinism_customers_accounts(tmp_path: Path) -> None:
     a = _generate(tmp_path / "a", "mix", seed=999)
     b = _generate(tmp_path / "b", "mix", seed=999)

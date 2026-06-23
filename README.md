@@ -64,6 +64,32 @@ The internal logic stays on canonical tokens; translation happens at write time
 > object (use `bank_gen/locales/fr.py` as a template) and register it in
 > `get_locale`.
 
+### Cross-border card spend (`--foreign-share`)
+
+`--foreign-share 0.05` makes ~5% of card payments happen **abroad**. The card is
+swiped in another country's currency, but — as in reality — **the account is
+debited in its own currency**: the network converts at a mid rate and the card
+scheme's foreign-transaction markup (~2%) is folded into the billed amount.
+
+For those transactions:
+
+| column | meaning |
+|---|---|
+| `amount` / `currency` | **billing** values that actually debit the balance (account currency) |
+| `country` | the merchant's country (a foreign country) |
+| `is_foreign` | `True` |
+| `original_amount` / `original_currency` | the purchase in the **foreign** currency |
+| `fx_rate` | mid conversion rate (`amount ≈ original_amount × fx_rate − foreign_fee`) |
+| `foreign_fee` | the FX markup portion (already included in `amount`) |
+
+Domestic transactions keep `is_foreign=False`, `fx_rate=1.0`, `foreign_fee=0.0`
+and `original_currency == currency`. Default is `0` (all domestic). Only card
+purchases travel — salary, rent, loans and subscriptions stay domestic.
+
+```bash
+python -m bank_gen.main --country us --foreign-share 0.05 --customers 500 --seed 4242
+```
+
 ## Quickstart
 
 > **Important — 2 output formats:**

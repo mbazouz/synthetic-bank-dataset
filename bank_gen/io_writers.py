@@ -112,6 +112,13 @@ TRANSACTION_PARQUET_SCHEMA = pa.schema([
     ("is_transfer", pa.bool_()),
     ("is_cash_withdrawal", pa.bool_()),
     ("balance_after_transaction", pa.float64()),
+    # cross-border card spend: amount/currency above are the BILLING values that
+    # debit the account; these describe the original foreign-currency purchase.
+    ("is_foreign", pa.bool_()),
+    ("original_amount", pa.float64()),
+    ("original_currency", pa.string()),
+    ("fx_rate", pa.float64()),
+    ("foreign_fee", pa.float64()),
 ])
 
 

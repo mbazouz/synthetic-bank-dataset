@@ -97,6 +97,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--country", type=str, default="us", choices=["fr", "us", "uk", "mix"],
                    help="Locale for names, banks, account types, merchants, currency and "
                         "statement wording. 'mix' assigns a country per customer. Default: us.")
+    p.add_argument("--foreign-share", type=float, default=0.0,
+                   help="Fraction (0-1) of card payments made abroad (cross-border). The "
+                        "account is still debited in its own currency; original_amount / "
+                        "original_currency / fx_rate / foreign_fee capture the foreign leg. "
+                        "Default: 0 (all domestic).")
     p.add_argument("--customers", type=int, default=DEFAULT_NUM_CUSTOMERS)
     p.add_argument("--start", type=str, default=DEFAULT_START_DATE.isoformat())
     p.add_argument("--end", type=str, default=DEFAULT_END_DATE.isoformat())
@@ -141,6 +146,8 @@ def main(argv: list[str] | None = None) -> int:
     start = _parse_date(args.start)
     end = _parse_date(args.end)
     formats = {f.strip().lower() for f in args.format.split(",") if f.strip()}
+    if not 0.0 <= args.foreign_share <= 1.0:
+        raise SystemExit(f"--foreign-share must be in [0, 1], got {args.foreign_share}")
 
     preset_ids = _resolve_presets(args.bank_presets)
     presets = {pid: BANK_PRESETS[pid] for pid in preset_ids}
@@ -255,6 +262,7 @@ def main(argv: list[str] | None = None) -> int:
 
     tx_count = 0
     terminal_rejection_fees = 0
+    foreign_tx = 0
     cm_csv = StreamingCsvWriter(tx_csv_path, TRANSACTION_FIELDS, batch_size=WRITE_BATCH_SIZE)
     cm_pq = (StreamingParquetWriter(tx_parquet_path, TRANSACTION_PARQUET_SCHEMA, batch_size=WRITE_BATCH_SIZE)
              if tx_parquet_path else None)
@@ -279,11 +287,14 @@ def main(argv: list[str] | None = None) -> int:
                     loans_by_customer.get(customer.customer_id, []),
                     start, end, per_seed,
                     trajectories_by_customer.get(customer.customer_id),
+                    args.foreign_share,
                 ):
                     # Count terminal rejection fees on the RAW token, then
                     # localize taxonomy values for output.
                     if is_terminal and tx["subcategory"] == "agios":
                         terminal_rejection_fees += 1
+                    if tx["is_foreign"]:
+                        foreign_tx += 1
                     tx["category"] = loc.tx_category(tx["category"])
                     tx["merchant_category"] = loc.tx_category(tx["merchant_category"])
                     tx["subcategory"] = loc.tx_subcategory(tx["subcategory"])
@@ -321,7 +332,9 @@ def main(argv: list[str] | None = None) -> int:
             "loans": len(loans),
             "merchants": len(merchant_catalog),
             "transactions": tx_count,
+            "foreign_transactions": foreign_tx,
         },
+        "foreign_share": args.foreign_share,
         "target_transactions": args.target_transactions,
         "elapsed_seconds": round(time.time() - t_global, 2),
         "formats": sorted(formats),

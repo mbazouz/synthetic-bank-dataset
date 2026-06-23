@@ -230,6 +230,16 @@ MIX_WEIGHTS = (0.45, 0.30, 0.25)
 # Per-locale salt so each locale's Faker instance starts from a distinct stream.
 LOCALE_SALT = {"us": 0, "uk": 101, "fr": 202}
 
+# Indicative FX rates (units of currency per 1 EUR) for cross-border card spend,
+# and the card scheme's foreign-transaction markup folded into the billed amount.
+FX_PER_EUR = {"EUR": 1.0, "USD": 1.08, "GBP": 0.86}
+FOREIGN_FEE_PCT = 0.02
+
+
+def fx_rate(billing_ccy: str, original_ccy: str) -> float:
+    """Billing-per-original mid rate: amount_billing = amount_original * fx_rate."""
+    return FX_PER_EUR.get(billing_ccy, 1.0) / FX_PER_EUR.get(original_ccy, 1.0)
+
 
 def get_locale(code: str) -> Locale:
     code = (code or "").lower()
