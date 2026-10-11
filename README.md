@@ -1,7 +1,7 @@
 # Synthetic Banking Dataset Generator
 
 [![CI](https://github.com/mbazouz/synthetic-bank-dataset/actions/workflows/ci.yml/badge.svg)](https://github.com/mbazouz/synthetic-bank-dataset/actions/workflows/ci.yml)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/License-PolyForm_Noncommercial_1.0.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
 
 Generates a 100% synthetic — yet realistic — retail banking dataset for AI
@@ -311,4 +311,7 @@ and do not correspond to any real person, account or institution.
 
 ## License
 
-Distributed under the **Apache 2.0** license. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
+Distributed under the **PolyForm Noncommercial 1.0.0** license: free for personal,
+research, educational and other noncommercial use. Commercial use is not
+permitted without a separate license from the author. See [`LICENSE`](LICENSE)
+and [`NOTICE`](NOTICE).

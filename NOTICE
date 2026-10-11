@@ -1,9 +1,11 @@
 Synthetic Banking Dataset Generator
-Copyright 2026 The synthetic-bank-dataset authors
+Required Notice: Copyright 2026 The synthetic-bank-dataset authors
 
 This product includes software developed by the synthetic-bank-dataset authors.
 
-Licensed under the Apache License, Version 2.0. See the LICENSE file for details.
+Licensed under the PolyForm Noncommercial License 1.0.0
+(https://polyformproject.org/licenses/noncommercial/1.0.0). See the LICENSE
+file for details. Commercial use requires a separate license.
 
 All data produced by this software is entirely synthetic and fictitious. Names,
 IBANs, card numbers, merchants, addresses, emails and phone numbers are randomly
